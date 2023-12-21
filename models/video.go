@@ -31,6 +31,15 @@ type VideoData struct {
 	IsEnd         int
 	Comment       int
 }
+type Episodes struct {
+	Id            int
+	Title         string
+	AddTime       int64
+	Num           int
+	PlayUrl       string
+	Comment       int
+	AliyunVideoId string
+}
 
 func init() {
 	orm.RegisterModel(new(Video))
@@ -47,4 +56,17 @@ func GetChannelRecommendTypeList(channelId int, typeId int) (int64, []VideoData,
 	var videos []VideoData
 	num, err := o.Raw("SELECT id,title,sub_title,add_time,img,img1,episodes_count,is_end FROM video WHERE status=1 AND is_recommend=1 AND type_id=? AND channel_id=? ORDER BY episodes_update_time DESC LIMIT 9", typeId, channelId).QueryRows(&videos)
 	return num, videos, err
+}
+func GetVideoInfo(videoId int) (Video, error) {
+	o := orm.NewOrm()
+	var video Video
+	err := o.Raw("SELECT * FROM video WHERE id=? LIMIT 1", videoId).QueryRow(&video)
+	return video, err
+}
+
+func GetVideoEpisodesList(videoId int) (int64, []Episodes, error) {
+	o := orm.NewOrm()
+	var episodes []Episodes
+	num, err := o.Raw("SELECT id,title,add_time,num,play_url,comment FROM video_episodes WHERE video_id=? order by num asc", videoId).QueryRows(&episodes)
+	return num, episodes, err
 }
