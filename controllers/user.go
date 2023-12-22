@@ -4,6 +4,8 @@ import (
 	"VideoSharingWeb/models"
 	"github.com/astaxie/beego"
 	"regexp"
+	"strconv"
+	"strings"
 )
 
 type UserController struct {
@@ -45,5 +47,34 @@ func (this *UserController) SaveRegister() {
 			this.Data["json"] = ReturnError(5000, err)
 			this.ServeJSON()
 		}
+	}
+}
+
+// @router /send/message [*]
+func (this *UserController) SendMessageDo() {
+	uids := this.GetString("uids")
+	content := this.GetString("content")
+
+	if uids == "" {
+		this.Data["json"] = ReturnError(4001, "请填写接收人~")
+		this.ServeJSON()
+	}
+	if content == "" {
+		this.Data["json"] = ReturnError(4002, "请填写发送内容")
+		this.ServeJSON()
+	}
+	messageId, err := models.SendMessageDo(content)
+	if err == nil {
+		uidConfig := strings.Split(uids, ",")
+		for _, v := range uidConfig {
+			userId, _ := strconv.Atoi(v)
+			models.SendMessageUser(userId, messageId)
+			//models.SendMessageUserMq(userId, messageId)
+		}
+		this.Data["json"] = ReturnSuccess(0, "发送成功~", "", 1)
+		this.ServeJSON()
+	} else {
+		this.Data["json"] = ReturnError(5000, "发送失败，请联系客服~")
+		this.ServeJSON()
 	}
 }

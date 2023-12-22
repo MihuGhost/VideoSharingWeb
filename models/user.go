@@ -53,3 +53,11 @@ func UserSave(mobile string, password string) error {
 	_, err := o.Insert(&user)
 	return err
 }
+
+// todo Redis
+func GetUserInfo(uid int) (UserInfo, error) {
+	o := orm.NewOrm()
+	var user UserInfo
+	err := o.Raw("SELECT id,name,add_time,avatar FROM user WHERE id=? LIMIT 1", uid).QueryRow(&user)
+	return user, err
+}
